@@ -8,21 +8,29 @@ class interval(object):  # для словаря
         self.right = right
 
 
-class table_el(object):  # для таблицы с интервалами
-    def __init__(self, letter, left_border, right_border):
+class dictionary_el(object):  # для словаря
+    def __init__(self, el_freq, all_let):
+        self.el_freq = el_freq
+        self.all_let = all_let
+
+
+class Interval(object):  # для таблицы с интервалами
+    def __init__(self, letter, left_border, right_border, res):
         self.letter = letter
         self.left_border = left_border
         self.right_border = right_border
+        self.res = res
 
 
 class letter_data(object):  # для таблицы с частотами
 
-    def __init__(self, letter, quantity):
+    def __init__(self, letter, quantity, total):
         self.letter = letter
         self.quantity = quantity
+        self.total = total
 
 
-Table = [letter_data(" ", 0)]
+Table = [letter_data(" ", 0, 0)]
 
 all_letters = 0
 
@@ -38,69 +46,139 @@ for char in f.read():
             Table[j].quantity = Table[j].quantity + 1
             break
         if j == len(Table) - 1:
-            Table.append(letter_data(char, 1))
+            Table.append(letter_data(char, 1, 0))
             break
 
 f.close()
 
-"""сортировка таблицы"""
 for i in range(len(Table)):
-    for j in range(len(Table) - i - 1):
+    print(Table[i].letter, " - ", Table[i].quantity, " - ", Table[i].total)
+
+print("next")
+
+"""сортировка таблицы"""
+i = 1
+while i in range(len(Table)):
+    j = 1
+    while j in range(len(Table) - i - 1):
         if Table[j].quantity < Table[j + 1].quantity:
             z = Table[j]
             Table[j] = Table[j + 1]
             Table[j + 1] = z
+        j += 1
+    i += 1
 
-i = 0
+index = 1
+while index < len(Table):
+    Table[index].total = Table[index - 1].total + Table[index].quantity
+    index = index + 1
 
-Coding_table = []
+for i in range(len(Table)):
+    print(Table[i].letter, " - ", Table[i].quantity, " - ", Table[i].total)
 
-for i in range(len(Table) - 1):  # составили таблицу типа: буква - левая граница - правая граница
-    if i == 0:
-        left = 0
-    else:
-        left = Coding_table[i - 1].right_border
-    right = (Table[i].quantity / all_letters) + left
-    Coding_table.append(table_el(Table[i].letter, left, right))
+code_data = Interval(None, 0, 65535, "")
 
-dictionary = dict()
-for i in range(len(Coding_table)):
-    dictionary[Coding_table[i].letter] = interval(Coding_table[i].left_border, Coding_table[i].right_border)
-
-code_txt = interval(0.0, 1.0)
+first_qtr = (65535 + 1) / 4
+half = first_qtr * 2
+third_qtr = first_qtr * 3
+bits_to_follow = 0
+divider = Table[-1].total
 
 f = open(ad, 'r')
 for char in f.read():
-    high = code_txt.right
-    low = code_txt.left
-    code_txt.right = low + (high - low) * dictionary[char].right
-    code_txt.left = low + (high - low) * dictionary[char].left
-    str_l = str(code_txt.left)
-    str_r = str(code_txt.right)
-    if ord(str_r[2]) == ord(str_l[2]):
-        str_r.index('.')
-        print(str_r[2], " - ", str_l[2])
-        a = str_r[2]
-        str_r.replace(a, '0', 1)
-        str_l.replace(a, '0', 1)
-        code_txt.right = float(str_r) * 10
-        code_txt.left = float(str_l) * 10
-    print(code_txt.left, " - ", code_txt.right)
-
+    index = 0
+    while Table[index].letter != char:
+        index = index + 1
+    l = code_data.left_border
+    r = code_data.right_border
+    code_data.letter = char
+    code_data.left_border = round(l + Table[index - 1].total * (r - l + 1) / divider, 0)
+    code_data.right_border = round(l + Table[index].total * (r - l + 1) / divider - 1)
+    print(code_data.letter, " - ", code_data.left_border, " - ", code_data.right_border)
+    q = 1
+    while q == 1:
+        q = 0
+        if code_data.right_border < half:
+            code_data.res += "0"
+            q = 1
+        elif code_data.left_border >= half:
+            code_data.res += "1"
+            code_data.left_border -= half
+            code_data.right_border -= half
+            q = 1
+        elif code_data.left_border >= first_qtr and code_data.right_border < third_qtr:
+            bits_to_follow += 1
+            code_data.left_border -= first_qtr
+            code_data.right_border -= first_qtr
+            q = 1
+        else:
+            break
+        code_data.left_border += code_data.left_border
+        code_data.right_border += code_data.right_border + 1
+        print(code_data.left_border, " - ", code_data.right_border, " - ", code_data.res)
 f.close()
 
-# str_l = str(code_txt.left)
-# print(str_l)
-# print(str_l[0], str_l[1], str_l[2], str_l[3])
-# print(ord(str_l[0]), ord(str_l[1]), ord(str_l[2]))
-# a = str_l[2]
-# print(a)
-# str_l = str_l.replace(a, '0', 1)
-# print(str_l)
+code_mass = []
+FB = 0
+free_bits = -1
+for i in range(len(code_data.res)):
+    if free_bits == -1:
+        code_mass.append(0)
+        free_bits = 7
+    if code_data.res[i] == '1':
+        code_mass[-1] = code_mass[-1] | (1 << free_bits)
+        free_bits = free_bits - 1
+        FB = free_bits
+    else:
+        free_bits = free_bits - 1
+        FB = free_bits
 
+for i in range(len(code_mass)):
+    print(code_mass[i])
 
+print(FB)
 
+"""дальше пошла заготовка для бинарника (не смотреть)"""
 
+Cap = "C:\\ForProg\\user2.dat"
 
+counter = 0
+"""
+передать количество элементов, являющихся шапкой
+передать таблицу: буква - чвстота - total
+передать значение FB
+
+передать код текста
+"""
+for i in range(len(Table_letter_Copy)):
+    p = ord(Table_letter_Copy[i])
+    if p <= 255:
+        counter = counter + 1
+
+f = open(Cap, 'wb')
+
+w = struct.pack('B', counter)  # struct.pack - для представления числа как байт
+#  информацию о struct брал здесь : https://tirinox.ru/python-struct/
+print(w)
+f.write(w)
+
+for i in range(len(Table_letter_Copy)):
+    p = ord(Table_letter_Copy[i])
+    if p <= 255:
+        w = struct.pack('B', p)
+        f.write(w)
+        w = struct.pack('I', Table_Hz_Copy[i])
+        f.write(w)
+
+i = 0
+for i in range(len(Code_Mass)):
+    w = struct.pack('B', Code_Mass[i])
+    f.write(w)
+
+w = struct.pack('b', FB)
+f.write(w)
+
+f.close()
+"""C:\ForProg\qqq.txt"""
 
 
