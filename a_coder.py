@@ -138,21 +138,28 @@ for i in range(len(code_mass)):
 
 print(FB)
 
+print("point 1")
 """дальше пошла заготовка для бинарника (не смотреть)"""
 
 Cap = "C:\\ForProg\\ArSortCap.dat"
 
-f = open(Cap, 'wb')     # открыли файл на запись
+print("point 2")
 
-counter = len(Table) * 2   # все, что не код текста
-counter = str(counter)
-counter = ord(counter)
+f = open(Cap, 'wb')  # открыли файл на запись
+
+print("point 3")
+
+counter = len(Table) * 2  # все, что не код текста
 counter = struct.pack('B', counter)
 f.write(counter)
 
-FB = ord(FB + 1)
+print("point 4")
+
+FB += 1
 FB = struct.pack('B', FB)
 f.write(FB)
+
+print("point 5")
 
 # запись шапки
 for i in range(len(Table) - 1):
@@ -163,10 +170,17 @@ for i in range(len(Table) - 1):
         w = struct.pack('I', Table[i].total)
         f.write(w)
 
+print("point 6")
+
 # запись кода
 for i in range(len(code_data.res) - 1):
     p = ord(code_data.res[i])
     if p <= 255:
         w = struct.pack('B', p)
         f.write(w)
+
+print("point 7")
+
 f.close()
+
+print("point 8")
