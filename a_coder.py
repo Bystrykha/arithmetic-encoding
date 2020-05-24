@@ -140,45 +140,33 @@ print(FB)
 
 """дальше пошла заготовка для бинарника (не смотреть)"""
 
-Cap = "C:\\ForProg\\user2.dat"
+Cap = "C:\\ForProg\\ArSortCap.dat"
 
-counter = 0
-"""
-передать количество элементов, являющихся шапкой
-передать таблицу: буква - чвстота - total
-передать значение FB
+f = open(Cap, 'wb')     # открыли файл на запись
 
-передать код текста
-"""
-for i in range(len(Table_letter_Copy)):
-    p = ord(Table_letter_Copy[i])
-    if p <= 255:
-        counter = counter + 1
+counter = len(Table) * 2   # все, что не код текста
+counter = str(counter)
+counter = ord(counter)
+counter = struct.pack('B', counter)
+f.write(counter)
 
-f = open(Cap, 'wb')
+FB = ord(FB + 1)
+FB = struct.pack('B', FB)
+f.write(FB)
 
-w = struct.pack('B', counter)  # struct.pack - для представления числа как байт
-#  информацию о struct брал здесь : https://tirinox.ru/python-struct/
-print(w)
-f.write(w)
-
-for i in range(len(Table_letter_Copy)):
-    p = ord(Table_letter_Copy[i])
+# запись шапки
+for i in range(len(Table) - 1):
+    p = ord(Table[i].letter)
     if p <= 255:
         w = struct.pack('B', p)
         f.write(w)
-        w = struct.pack('I', Table_Hz_Copy[i])
+        w = struct.pack('I', Table[i].total)
         f.write(w)
 
-i = 0
-for i in range(len(Code_Mass)):
-    w = struct.pack('B', Code_Mass[i])
-    f.write(w)
-
-w = struct.pack('b', FB)
-f.write(w)
-
+# запись кода
+for i in range(len(code_data.res) - 1):
+    p = ord(code_data.res[i])
+    if p <= 255:
+        w = struct.pack('B', p)
+        f.write(w)
 f.close()
-"""C:\ForProg\qqq.txt"""
-
-
