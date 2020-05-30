@@ -78,7 +78,7 @@ for i in range(len(Table)):
 
 code_data = Interval(None, 0, 65535, "")
 
-first_qtr = (65535 + 1) / 4
+first_qtr = int((65535 + 1) / 4)
 half = first_qtr * 2
 third_qtr = first_qtr * 3
 bits_to_follow = 0
@@ -92,8 +92,8 @@ for char in f.read():
     l = code_data.left_border
     r = code_data.right_border
     code_data.letter = char
-    code_data.left_border = round(l + Table[index - 1].total * (r - l + 1) / divider, 0)
-    code_data.right_border = round(l + Table[index].total * (r - l + 1) / divider - 1)
+    code_data.left_border = int(l + Table[index - 1].total * (r - l + 1) / divider)
+    code_data.right_border = int(l + Table[index].total * (r - l + 1) / divider - 1)
     print(code_data.letter, " - ", code_data.left_border, " - ", code_data.right_border)
     q = 1
     while q == 1:
@@ -133,54 +133,45 @@ for i in range(len(code_data.res)):
         free_bits = free_bits - 1
         FB = free_bits
 
+print("code txt:")
+
 for i in range(len(code_mass)):
-    print(code_mass[i])
+    print(chr(code_mass[i]))
 
 print(FB)
 
-print("point 1")
 """дальше пошла заготовка для бинарника (не смотреть)"""
 
 Cap = "C:\\ForProg\\ArSortCap.dat"
 
-print("point 2")
-
 f = open(Cap, 'wb')  # открыли файл на запись
 
-print("point 3")
-
-counter = len(Table) * 2  # все, что не код текста
+counter = len(Table)  # все, что не код текста
 counter = struct.pack('B', counter)
 f.write(counter)
-
-print("point 4")
 
 FB += 1
 FB = struct.pack('B', FB)
 f.write(FB)
 
-print("point 5")
-
 # запись шапки
-for i in range(len(Table) - 1):
+for i in range(len(Table)):
     p = ord(Table[i].letter)
     if p <= 255:
         w = struct.pack('B', p)
         f.write(w)
         w = struct.pack('I', Table[i].total)
+
         f.write(w)
 
-print("point 6")
-
 # запись кода
-for i in range(len(code_data.res) - 1):
-    p = ord(code_data.res[i])
+print("Запись в бинарник:")
+for i in range(len(code_mass)):
+    p = code_mass[i]
+    print(p, " - ", chr(p))
     if p <= 255:
         w = struct.pack('B', p)
         f.write(w)
 
-print("point 7")
-
 f.close()
 
-print("point 8")
