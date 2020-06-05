@@ -36,9 +36,12 @@ all_letters = 0
 
 ad = "C:\ForProg\AS.txt"
 
-"""читаем текст и составляем таблицу с данными о символах"""
+"""читаем текст и троим таблицу с данными о символах"""
+
+Table.append(letter_data(None, 0, 0))
 
 f = open(ad, 'r')
+
 for char in f.read():
     all_letters = all_letters + 1
     for j in range(len(Table)):
@@ -57,11 +60,11 @@ for i in range(len(Table)):
 print("next")
 
 """сортировка таблицы"""
-i = 1
-while i in range(len(Table)):
-    j = 1
-    while j in range(len(Table) - i - 1):
-        if Table[j].quantity < Table[j + 1].quantity:
+i = 0
+while i in range(len(Table) - 1):
+    j = 0
+    while j + 1 in range(len(Table) - i):
+        if Table[j].quantity > Table[j + 1].quantity:
             z = Table[j]
             Table[j] = Table[j + 1]
             Table[j + 1] = z
@@ -83,39 +86,52 @@ half = first_qtr * 2
 third_qtr = first_qtr * 3
 bits_to_follow = 0
 divider = Table[-1].total
+bits_to_follow = 0
 
 f = open(ad, 'r')
 for char in f.read():
     index = 0
     while Table[index].letter != char:
         index = index + 1
-    l = code_data.left_border
-    r = code_data.right_border
+    low = code_data.left_border
+    high = code_data.right_border
+
     code_data.letter = char
-    code_data.left_border = int(l + Table[index - 1].total * (r - l + 1) / divider)
-    code_data.right_border = int(l + Table[index].total * (r - l + 1) / divider - 1)
-    print(code_data.letter, " - ", code_data.left_border, " - ", code_data.right_border)
+    code_data.left_border = int(low + Table[index - 1].total * (high - low + 1) / divider)
+    code_data.right_border = int(low + Table[index].total * (high - low + 1) / divider - 1)
     q = 1
+    print("divider ", divider)
     while q == 1:
+        #print("low ", code_data.left_border, ", high ", code_data.right_border)
         q = 0
         if code_data.right_border < half:
             code_data.res += "0"
+            while bits_to_follow > 0:
+                code_data.res += "1"
+                bits_to_follow -= 1
             q = 1
         elif code_data.left_border >= half:
             code_data.res += "1"
             code_data.left_border -= half
             code_data.right_border -= half
+            while bits_to_follow > 0:
+                code_data.res += "0"
+                bits_to_follow -= 1
             q = 1
         elif code_data.left_border >= first_qtr and code_data.right_border < third_qtr:
             bits_to_follow += 1
             code_data.left_border -= first_qtr
             code_data.right_border -= first_qtr
             q = 1
+
+            print("LOOOOOOOOOOOOOOOK!!!!!!!")
         else:
             break
+        print("low ", code_data.left_border, ", high ", code_data.right_border)
         code_data.left_border += code_data.left_border
         code_data.right_border += code_data.right_border + 1
-        print(code_data.left_border, " - ", code_data.right_border, " - ", code_data.res)
+        print("low ", code_data.left_border, ", high ", code_data.right_border)
+
 f.close()
 
 code_mass = []
@@ -133,11 +149,6 @@ for i in range(len(code_data.res)):
         free_bits = free_bits - 1
         FB = free_bits
 
-print("code txt:")
-
-for i in range(len(code_mass)):
-    print(chr(code_mass[i]))
-
 print(FB)
 
 """дальше пошла заготовка для бинарника (не смотреть)"""
@@ -146,21 +157,25 @@ Cap = "C:\\ForProg\\ArSortCap.dat"
 
 f = open(Cap, 'wb')  # открыли файл на запись
 
-counter = len(Table)  # все, что не код текста
-counter = struct.pack('B', counter)
-f.write(counter)
-
 FB += 1
+print(FB)
 FB = struct.pack('B', FB)
 f.write(FB)
 
+counter = len(Table) - 1  # все, что не код текста
+print(counter)
+counter = struct.pack('B', counter)
+f.write(counter)
+
 # запись шапки
-for i in range(len(Table)):
+i = 1
+while i in range(len(Table)):
     p = ord(Table[i].letter)
     if p <= 255:
         w = struct.pack('B', p)
         f.write(w)
         w = struct.pack('I', Table[i].total)
+        i += 1
 
         f.write(w)
 
@@ -168,10 +183,10 @@ for i in range(len(Table)):
 print("Запись в бинарник:")
 for i in range(len(code_mass)):
     p = code_mass[i]
-    print(p, " - ", chr(p))
     if p <= 255:
         w = struct.pack('B', p)
         f.write(w)
 
 f.close()
 
+print(code_data.res)
